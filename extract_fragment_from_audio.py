@@ -9,7 +9,7 @@ def extract_fragment_from_audio(start: str, end: str, input_path: str = None, ou
     start_min, start_sec = map(int, [start.split(':')[0], start.split(':')[1]])
     duration = (end_min - start_min) * 60 - abs(end_sec - start_sec) if end_sec < start_sec else (end_min - start_min) * 60 + abs(end_sec - start_sec)
 
-    Trim audio:
+    # Trim audio:
     extract_audio(input_path=input_path,
                   output_path=output_path,
                   start_time=start,
