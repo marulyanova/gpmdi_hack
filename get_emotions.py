@@ -43,9 +43,15 @@ def recognize_emotion(chunk) -> str:
             truncation=True
         )
 
+    inputs = inputs.to(device)
+    
     logits = model(inputs['input_values'][0]).logits
     predictions = torch.argmax(logits, dim=-1)
-    predicted_emotion = num2emotion[predictions.numpy()[0]]
+
+    if device == 'cuda':
+        predicted_emotion = num2emotion[predictions.cpu().numpy()[0]]
+    else:
+        predicted_emotion = num2emotion[predictions.numpy()[0]]
     return predicted_emotion
 
 
