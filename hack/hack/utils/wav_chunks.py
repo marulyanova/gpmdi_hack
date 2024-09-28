@@ -34,6 +34,7 @@ import os
 from pathlib import Path
 import wave
 
+
 def extract_wav_chunk(input_file, start_sec, end_sec, output_file):
     """
     Функция, которая извлекает фрагмент аудиофайла с расширением .wav
@@ -48,7 +49,11 @@ def extract_wav_chunk(input_file, start_sec, end_sec, output_file):
     input_file = Path(input_file)
     output_file = Path(output_file)
 
-    if not input_file.exists() or not input_file.is_file() or not input_file.suffix.lower() == ".wav":
+    if (
+        not input_file.exists()
+        or not input_file.is_file()
+        or not input_file.suffix.lower() == ".wav"
+    ):
         raise ValueError("Указан некорректный путь к файлу .wav")
 
     with wave.open(str(input_file), "r") as wav:
