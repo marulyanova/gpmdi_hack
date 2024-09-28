@@ -41,9 +41,9 @@ def lemmatize_file(filepath):
     return keywords
 
 
-BLACK = file_openner(Path.cwd() / "data" / "black_lemmatized.txt")
-GREY = file_openner(Path.cwd() / "data" / "grey_lemmatized.txt")
-PLUS18 = file_openner(Path.cwd() / "data" / "18plus_lemmatized.txt")
+BLACK = file_openner(Path.cwd() / "project" / "data" / "black_lemmatized.txt")
+GREY = file_openner(Path.cwd() / "project" / "data" / "grey_lemmatized.txt")
+PLUS18 = file_openner(Path.cwd() / "project" / "data" / "18plus_lemmatized.txt")
 
 
 def get_morph(text):
@@ -55,7 +55,6 @@ def get_morph(text):
     result = []
     for j in i.split(" "):
       if len(re.findall(r"[а-яА-ЯёЁa-zA-Z]+", j)) < 2:
-      # result += []
         continue
       j = re.findall(r"[а-яА-ЯёЁa-zA-Z]+", j)[0]
       if j in BLACK and j not in GREY:

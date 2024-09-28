@@ -17,10 +17,16 @@ from utils.yolo_service import filtered_object, get_frames, get_object_from_vide
 from utils.clips import get_embedd, get_clips
 from utils.text_tone import get_inappropriate
 from utils.morph import get_morph
+from utils.photo_search import Embedding, Similar, create_db
+
+
+
+
 
 
 def main():
     st.title("Разметка видеоконтента")
+
 
     # File upload section
     st.header("Загрузите видео")
@@ -43,14 +49,24 @@ def process_video(uploaded_file):
     vifeo_format = (
         "video/x-msvideo" if uploaded_file.type == "video/x-msvideo" else "video/mp4"
     )
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
-        temp_file.write(uploaded_file.getbuffer())
-        temp_file_path = temp_file.name
+
+    save_directory = str(Path.cwd() / "data")
+    os.makedirs(save_directory, exist_ok=True)  # Создайте директорию, если она не существует
+
+    # Сохранение видеофайла
+    if uploaded_file is not None:
+        file_path = os.path.join(save_directory, "uploaded_video.mp4")
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+
+    # with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+    #     temp_file.write(uploaded_file.getbuffer())
+    #     temp_file_path = temp_file.name
 
     if "start_time" not in st.session_state:
         st.session_state.start_time = 0
 
-    whisper_data = get_text_stats(temp_file_path)
+    whisper_data = get_text_stats(file_path)
     whisper_data["emotionals"] = ""
     whisper_data["objects"] = [[] for _ in range(len(whisper_data))]
     whisper_data["anomaly"] = ""
@@ -58,23 +74,25 @@ def process_video(uploaded_file):
     whisper_data["anomaly_boxes"] = ""
 
     frames = get_frames(
-        temp_file_path,
+        file_path,
         step_seconds=1,
     )
 
-    with open("frames.pkl", "wb") as f:
-        pickle.dump(frames, f)
+    emb = Embedding(name_db="db")
+
+    # db_path = f"dbs/{file_path}"
+
+    step_seconds = 1
+    emb.proccessing(file_path, step_seconds, "1")
+
 
     for i in range(len(whisper_data)):
-        # print(whisper_data["start"][i])
-        # print(whisper_data["end"][i])
-        # print(whisper_data["text"][i])
         if whisper_data["start"][i] == whisper_data["end"][i]:
             continue
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_wav_file:
             output_file = temp_wav_file.name
             extract_wav_chunk(
-                temp_file_path[:-3] + "wav",
+                file_path[:-3] + "wav",
                 start_sec=whisper_data["start"][i],
                 end_sec=whisper_data["end"][i],
                 output_file=output_file,
@@ -106,10 +124,12 @@ def process_video(uploaded_file):
     clips = get_clips(embeds, frames)
 
     whisper_data["anomaly"] = whisper_data["anomaly"].astype(str)
-    # "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"
+    whisper_data["text_tone"] = whisper_data["text_tone"].astype(str)
+    whisper_data["text_morph"] = whisper_data["text_morph"].astype(str)
+    st.write(whisper_data[["text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]])# "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"
 
     st.video(
-        data=temp_file_path, start_time=st.session_state.start_time, format=vifeo_format
+        data=file_path, start_time=st.session_state.start_time, format=vifeo_format
     )
 
     if st.button("Переместить начало видео на 10 секунд"):
@@ -117,7 +137,6 @@ def process_video(uploaded_file):
         st.rerun()
 
     os.remove(output_file)
-    os.remove(temp_file_path)
 
 
 def process_zip_archive(uploaded_file):
@@ -183,4 +202,5 @@ def process_zip_archive(uploaded_file):
 
 
 if __name__ == "__main__":
+
     main()

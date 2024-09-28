@@ -4,8 +4,8 @@ import numpy as np
 
 from tqdm import tqdm
 
-model = YOLO("yolov8s.pt")
-anomaly_model = YOLO("yolov8s_15epochs_3dataset.pt")
+model = YOLO("project/yolov8s.pt")
+anomaly_model = YOLO("project/yolov8s_15epochs_3dataset.pt")
 
 
 def get_frames(video_path: str, step_seconds: int):
