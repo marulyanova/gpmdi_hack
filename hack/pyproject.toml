@@ -6,12 +6,16 @@ authors = [
     {name = "Artem216", email = "artemtsykanov22@gmail.com"},
 ]
 dependencies = [
-    "cookiecutter-data-science>=2.0.0",
-    "moviepy>=1.0.3",
     "pandas>=2.2.3",
-    "openai-whisper>=20231117",
+    "pydub>=0.25.1",
+    "transformers>=4.45.1",
+    "torchaudio>=2.4.1",
+    "moviepy>=1.0.3",
+    "openai-whisper>=20230306",
+    "ultralytics>=8.2.102",
+    "streamlit>=1.38.0",
 ]
-requires-python = "==3.10.*"
+requires-python = "==3.11.*"
 readme = "README.md"
 license = {text = "MIT"}
 
