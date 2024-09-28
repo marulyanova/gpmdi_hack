@@ -1,0 +1,21 @@
+
+services:
+  streamlit:
+    build:
+      context: .
+    environment:
+      - HF_HOME=/project/hub
+      - STREAMLIT_SERVER_MAX_UPLOAD_SIZE=400
+    ports:
+      - "8501:8501"
+    expose:
+      - 8501
+    volumes:
+    - /home/kai/.cache/huggingface:/project/hub
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: ["gpu"]
