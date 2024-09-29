@@ -6,8 +6,7 @@ import cv2
 from pathlib import Path
 
 from utils.photo_search import Similar
-
-
+from utils.person_clustering import clustering
 def list_video_files(directory):
     # Расширения видеофайлов
     video_extensions = ('.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv')
@@ -72,8 +71,20 @@ def main():
         option = st.selectbox(label= "Выбери", options=list_video_files(Path.cwd() / "data"))
 
         frames_idx, timings = s.get_timings(temp_file_path, str(Path.cwd() / "data" / option), "1", 60)
+     
+        for i in len(frames_idx):
+            st.image(s.get_frame(str(Path.cwd() / "data" / option), frames_idx[i]), caption=timings[i])
+        
 
-        st.image([s.get_frame(str(Path.cwd() / "data" / option), frame_id) for frame_id in frames_idx])
+    st.header("Ключевые персонажи")
+    if st.button("Рассчитать!"):
+        output_paths = clustering(
+            whisper_df_=st.session_state.whisper_data, time_frames=st.session_state.frames, path="/project/data/images"
+        )
+        st.image(output_paths)
+
+
+    
 
 if __name__ == "__main__":
     main()

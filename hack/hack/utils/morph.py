@@ -47,23 +47,23 @@ PLUS18 = file_openner(Path.cwd() / "project" / "data" / "18plus_lemmatized.txt")
 
 
 def get_morph(text):
-  lemmatize_text = [lemmatize_sentence(i) for i in text]
-  print(len(lemmatize_text))
-  ans = []
-  for i in lemmatize_text:
-    dictionary = {"black": [], "grey": [], "18+": []}
-    result = []
-    for j in i.split(" "):
-      if len(re.findall(r"[а-яА-ЯёЁa-zA-Z]+", j)) < 2:
-        continue
-      j = re.findall(r"[а-яА-ЯёЁa-zA-Z]+", j)[0]
-      if j in BLACK and j not in GREY:
-        dictionary["black"] += [j]
-      if j in GREY:
-        dictionary["grey"] += [j]
-      if j in PLUS18:
-        dictionary["18+"] += [j]
+    lemmatize_text = [lemmatize_sentence(i) for i in text]
+    print(len(lemmatize_text))
+    ans = []
+    for i in lemmatize_text:
+        dictionary = {"black": [], "grey": [], "18+": []}
+        result = []
+        for j in i.split(" "):
+            if len(re.findall(r"[а-яА-ЯёЁa-zA-Z]+", j)) < 2:
+                continue
+            j = re.findall(r"[а-яА-ЯёЁa-zA-Z]+", j)[0]
+            if j in BLACK and j not in GREY:
+                dictionary["black"] += [j]
+            if j in GREY:
+                dictionary["grey"] += [j]
+            if j in PLUS18:
+                dictionary["18+"] += [j]
 
-      result.append([i, dictionary])
-    ans.append(result)
-  return ans
+            result.append([i, dictionary])
+        ans.append(result)
+    return ans
