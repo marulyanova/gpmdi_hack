@@ -18,12 +18,12 @@ from utils.clips import get_embedd, get_clips, time_to_seconds
 from utils.text_tone import get_inappropriate
 from utils.morph import get_morph
 from utils.photo_search import Embedding
-
+from utils.lemm import get_scene_info
 
 
 def main():
     st.title("Разметка видеоконтента")
-
+    
     # File upload section
     st.header("Загрузите видео")
     uploaded_file = st.file_uploader("Выберите файл", type=["mp4", "zip", "mov", "avi"])
@@ -131,47 +131,56 @@ def process_video(uploaded_file):
     st.session_state.whisper_data["anomaly"] = st.session_state.whisper_data["anomaly"].astype(str)
     st.session_state.whisper_data["text_tone"] = st.session_state.whisper_data["text_tone"].astype(str)
     st.session_state.whisper_data["text_morph"] = st.session_state.whisper_data["text_morph"].astype(str)
-    st.write(
-        st.session_state.whisper_data[
-            ["text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]
-        ]
-    )  # "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"
+    # st.write(
+    #     st.session_state.whisper_data[
+    #         ["text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]
+    #     ]
+    # )  # "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"
 
     st.video(
         data=file_path, start_time=st.session_state.start_time,
     )
 
-    st.write("Сцены видео:")
+    new_df = get_scene_info(st.session_state.whisper_data, clips)
+
+    st.header("Сцены видео:")
     # Создаем две колонки: одна для изображений, другая для кнопок
 
     for i, clip in enumerate(clips):
-        col1, col2 = st.columns([2, 1]) 
+        st.header(f"Сцена {i + 1}")
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1]) 
         # Преобразуем таймкод в формат "минуты:секунды"
         with col1:
             st.image(st.session_state.frames[time_to_seconds(clip)][1], width=200)
 
         with col2:
+            st.markdown(f'Эмоциональный окрас {new_df["emotion"][i]}')
+
+        with col3:
+             st.markdown(f'Ключевые объекты: {new_df["important_objects"][i]}')
+
+        with col4:
             # Создаем кнопку для перехода на этот момент
-            if st.button(f"Перейти к сцене {i + 1} ({clip})"):
-                st.session_state.start_time = time_to_seconds(clip)
-                st.reload()
-
-
-    
-    if "category" not in st.session_state:
-        st.session_state.category = "Музыка"  # Значение по умолчанию
-
-    st.session_state.category = st.selectbox("Выберите категорию:", ["Музыка", "Запрещенный контент", "Эмоции"], index=["Музыка", "Запрещенный контент", "Эмоции"].index(st.session_state.category))
+             st.markdown(f"Сцена  {i + 1} ({clip})")
 
     # Фильтрация строк по выбранной категории
-    if st.session_state.category == "Музыка":
-        music_lines = [line for line in st.session_state.whisper_data["text"] if "МУЗЫКА" in line]
-        if music_lines:
-            st.write("Строки, содержащие музыку:")
-            for line in music_lines:
-                st.write(line)
-        else:
-            st.write("Нет строк, содержащих музыку.")
+    st.header("Музыка.")
+    music_lines = [line for line in st.session_state.whisper_data["text"] if "МУЗЫКА" in line]
+    if music_lines:
+        st.write("Строки, содержащие музыку:")
+        for line in music_lines:
+            st.write(line)
+    else:
+        st.write("Нет строк, содержащих музыку.")
+
+    # st.session_state.whisper_data["anomaly"] = st.session_state.whisper_data["anomaly"].astype(str)
+    # st.session_state.whisper_data["text_tone"] = st.session_state.whisper_data["text_tone"].astype(str)
+    # st.session_state.whisper_data["text_morph"] = st.session_state.whisper_data["text_morph"].astype(str)
+    st.write(
+        st.session_state.whisper_data[
+            ["start", "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]
+        ]
+    )
 
 
     os.remove(output_file)
@@ -237,4 +246,7 @@ def process_zip_archive(uploaded_file):
 
 
 if __name__ == "__main__":
+    st.set_page_config(
+        layout='wide'
+    )
     main()

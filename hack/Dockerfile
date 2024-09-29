@@ -11,9 +11,13 @@ ENV PDM_CHECK_UPDATE=false
 COPY pyproject.toml pdm.lock /project/
 # COPY . /project/
 
+
 # install dependencies and project into the local packages directory
 WORKDIR /project
+
 RUN pdm install --check --prod --no-editable
+
+# RUN pdm run python -m spacy download ru_core_news_sm
 
 # run stage
 FROM python:$PYTHON_BASE
@@ -29,7 +33,6 @@ RUN pip install opencv-python
 COPY . /project/
 
 # RUN cd /project
-
 
 
 CMD ["streamlit", "run", "/project/hack/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
