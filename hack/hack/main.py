@@ -56,7 +56,7 @@ def process_video(uploaded_file):
 
     # Сохранение видеофайла
     if uploaded_file is not None:
-        file_path = os.path.join(save_directory, "uploaded_video.mp4")
+        file_path = os.path.join(save_directory, "Silicon Valley.mp4")
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
@@ -89,7 +89,7 @@ def process_video(uploaded_file):
     # db_path = f"dbs/{file_path}"
 
     step_seconds = 1
-    emb.proccessing(file_path, step_seconds, "1")
+    emb.proccessing(file_path, step_seconds, "123")
 
     for i in range(len(st.session_state.whisper_data)):
         if st.session_state.whisper_data["start"][i] == st.session_state.whisper_data["end"][i]:
@@ -178,7 +178,7 @@ def process_video(uploaded_file):
     # st.session_state.whisper_data["text_morph"] = st.session_state.whisper_data["text_morph"].astype(str)
     st.write(
         st.session_state.whisper_data[
-            ["start", "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]
+            ["start", "text", "anomaly", "text_tone", "text_morph"]
         ]
     )
 

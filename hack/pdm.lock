@@ -5,7 +5,7 @@
 groups = ["default"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:2cfa5c99133505fe3e20004f27d1ce862cd318a51b59a4468698f495cd7f35b7"
+content_hash = "sha256:2fab38583a58da47305f39011d1365ef3833dbf7e238ce25df7c76c7426204b8"
 
 [[metadata.targets]]
 requires_python = "==3.11.*"
@@ -737,6 +737,16 @@ dependencies = [
 files = [
     {file = "language_data-1.2.0-py3-none-any.whl", hash = "sha256:77d5cab917f91ee0b2f1aa7018443e911cf8985ef734ca2ba3940770f6a3816b"},
     {file = "language_data-1.2.0.tar.gz", hash = "sha256:82a86050bbd677bfde87d97885b17566cfe75dad3ac4f5ce44b52c28f752e773"},
+]
+
+[[package]]
+name = "lib"
+version = "4.0.0"
+summary = "Autocode standard library Python bindings"
+groups = ["default"]
+files = [
+    {file = "lib-4.0.0-py3-none-any.whl", hash = "sha256:d0a9e03b27d2b94c403f43c1af39366500032d587dcd45ffdf707131cbdf58c6"},
+    {file = "lib-4.0.0.tar.gz", hash = "sha256:da861f02e9ee8748a8f168584de94f0ed85aad65e70f62760f1962ae515c94e1"},
 ]
 
 [[package]]

@@ -21,6 +21,7 @@ dependencies = [
     "ipykernel>=6.29.5",
     "spacy>=3.7.6",
     "pytextrank>=3.3.0",
+    "lib>=4.0.0",
 ]
 requires-python = "==3.11.*"
 readme = "README.md"

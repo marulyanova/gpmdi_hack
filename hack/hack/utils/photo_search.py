@@ -86,7 +86,7 @@ class Embedding:
         return rows
 
     def add_to_db(self, name_db, video_name_for_db):
-        conn = sqlite3.connect(f"dbs/{name_db}.db")
+        conn = sqlite3.connect(f"project/dbs/{name_db}.db")
         cursor = conn.cursor()
 
         feat_cols = [f"feat_{i}" for i in range(self.features.shape[1])]
@@ -146,7 +146,7 @@ class Similar(Embedding):
             return None
 
     def select_video_from_db(self, name_db, video_name_for_db):
-        conn = sqlite3.connect(f"dbs/{name_db}.db")
+        conn = sqlite3.connect(f"project/dbs/{name_db}.db")
         cursor = conn.cursor()
 
         cursor.execute(f"SELECT * FROM base WHERE name_video = {video_name_for_db}")
