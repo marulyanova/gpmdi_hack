@@ -14,20 +14,16 @@ from utils.whisper_service import get_text_stats
 from utils.wav_chunks import extract_wav_chunk
 from utils.emotional_extractor import get_emotional_pipeline
 from utils.yolo_service import filtered_object, get_frames, get_object_from_video
-from utils.clips import get_embedd, get_clips
+from utils.clips import get_embedd, get_clips, time_to_seconds
 from utils.text_tone import get_inappropriate
 from utils.morph import get_morph
-from utils.photo_search import Embedding, Similar, create_db
-
-
-
-
+from utils.photo_search import Embedding
+from utils.lemm import get_scene_info
 
 
 def main():
     st.title("Разметка видеоконтента")
-
-
+    
     # File upload section
     st.header("Загрузите видео")
     uploaded_file = st.file_uploader("Выберите файл", type=["mp4", "zip", "mov", "avi"])
@@ -44,6 +40,9 @@ def main():
             )
 
 
+    
+
+
 def process_video(uploaded_file):
     suffix = ".avi" if uploaded_file.type == "video/x-msvideo" else ".mp4"
     vifeo_format = (
@@ -51,11 +50,13 @@ def process_video(uploaded_file):
     )
 
     save_directory = str(Path.cwd() / "data")
-    os.makedirs(save_directory, exist_ok=True)  # Создайте директорию, если она не существует
+    os.makedirs(
+        save_directory, exist_ok=True
+    )  # Создайте директорию, если она не существует
 
     # Сохранение видеофайла
     if uploaded_file is not None:
-        file_path = os.path.join(save_directory, "uploaded_video.mp4")
+        file_path = os.path.join(save_directory, "Silicon Valley.mp4")
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
 
@@ -66,14 +67,19 @@ def process_video(uploaded_file):
     if "start_time" not in st.session_state:
         st.session_state.start_time = 0
 
-    whisper_data = get_text_stats(file_path)
-    whisper_data["emotionals"] = ""
-    whisper_data["objects"] = [[] for _ in range(len(whisper_data))]
-    whisper_data["anomaly"] = ""
-    whisper_data["objects_boxes"] = ""
-    whisper_data["anomaly_boxes"] = ""
+    if "whisper_data" not in st.session_state:
+        st.session_state.whisper_data = None
+        st.session_state.frames = None
+        st.session_state.vifeos_array = []
 
-    frames = get_frames(
+    st.session_state.whisper_data = get_text_stats(file_path)
+    st.session_state.whisper_data["emotionals"] = ""
+    st.session_state.whisper_data["objects"] = [[] for _ in range(len(st.session_state.whisper_data))]
+    st.session_state.whisper_data["anomaly"] = ""
+    st.session_state.whisper_data["objects_boxes"] = ""
+    st.session_state.whisper_data["anomaly_boxes"] = ""
+
+    st.session_state.frames = get_frames(
         file_path,
         step_seconds=1,
     )
@@ -83,58 +89,99 @@ def process_video(uploaded_file):
     # db_path = f"dbs/{file_path}"
 
     step_seconds = 1
-    emb.proccessing(file_path, step_seconds, "1")
+    emb.proccessing(file_path, step_seconds, "123")
 
-
-    for i in range(len(whisper_data)):
-        if whisper_data["start"][i] == whisper_data["end"][i]:
+    for i in range(len(st.session_state.whisper_data)):
+        if st.session_state.whisper_data["start"][i] == st.session_state.whisper_data["end"][i]:
             continue
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_wav_file:
             output_file = temp_wav_file.name
             extract_wav_chunk(
                 file_path[:-3] + "wav",
-                start_sec=whisper_data["start"][i],
-                end_sec=whisper_data["end"][i],
+                start_sec=st.session_state.whisper_data["start"][i],
+                end_sec=st.session_state.whisper_data["end"][i],
                 output_file=output_file,
             )
 
             emotionals = get_emotional_pipeline(output_file)
 
-        whisper_data.loc[i, "emotionals"] = emotionals
+        st.session_state.whisper_data.loc[i, "emotionals"] = emotionals
 
-        start_frame = int(whisper_data["start"][i])
-        end_frame = int(whisper_data["end"][i])
+        start_frame = int(st.session_state.whisper_data["start"][i])
+        end_frame = int(st.session_state.whisper_data["end"][i])
         object_arr, boxplot_info, anomaly_object_arr, anomaly_boxplot_info = (
-            get_object_from_video(frames[start_frame:end_frame])
+            get_object_from_video(st.session_state.frames[start_frame:end_frame])
         )
 
-        whisper_data["objects"][i] = object_arr
-        whisper_data["anomaly"][i] = anomaly_object_arr
+        st.session_state.whisper_data["objects"][i] = object_arr
+        st.session_state.whisper_data["anomaly"][i] = anomaly_object_arr
 
-        whisper_data["objects_boxes"][i] = boxplot_info
-        whisper_data["anomaly_boxes"][i] = anomaly_boxplot_info
+        st.session_state.whisper_data["objects_boxes"][i] = boxplot_info
+        st.session_state.whisper_data["anomaly_boxes"][i] = anomaly_boxplot_info
 
-    whisper_data["text_tone"] = get_inappropriate(whisper_data["text"].to_list())
-    whisper_data["text_morph"] = get_morph(list(whisper_data["text"]))
+    st.session_state.whisper_data["text_tone"] = get_inappropriate(st.session_state.whisper_data["text"].to_list())
+    st.session_state.whisper_data["text_morph"] = get_morph(list(st.session_state.whisper_data["text"]))
 
-    whisper_data.to_pickle("whisper.pkl")
+    st.session_state.whisper_data.to_pickle("whisper.pkl")
 
-    embeds = get_embedd(frames)
+    embeds = get_embedd(st.session_state.frames)
 
-    clips = get_clips(embeds, frames)
+    clips = get_clips(embeds, st.session_state.frames)
 
-    whisper_data["anomaly"] = whisper_data["anomaly"].astype(str)
-    whisper_data["text_tone"] = whisper_data["text_tone"].astype(str)
-    whisper_data["text_morph"] = whisper_data["text_morph"].astype(str)
-    st.write(whisper_data[["text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]])# "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"
+    st.session_state.whisper_data["anomaly"] = st.session_state.whisper_data["anomaly"].astype(str)
+    st.session_state.whisper_data["text_tone"] = st.session_state.whisper_data["text_tone"].astype(str)
+    st.session_state.whisper_data["text_morph"] = st.session_state.whisper_data["text_morph"].astype(str)
+    # st.write(
+    #     st.session_state.whisper_data[
+    #         ["text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"]
+    #     ]
+    # )  # "text", "emotionals", "objects", "anomaly", "text_tone", "text_morph"
 
     st.video(
-        data=file_path, start_time=st.session_state.start_time, format=vifeo_format
+        data=file_path, start_time=st.session_state.start_time,
     )
 
-    if st.button("Переместить начало видео на 10 секунд"):
-        st.session_state.start_time += 10
-        st.rerun()
+    new_df = get_scene_info(st.session_state.whisper_data, clips)
+
+    st.header("Сцены видео:")
+    # Создаем две колонки: одна для изображений, другая для кнопок
+
+    for i, clip in enumerate(clips):
+        st.header(f"Сцена {i + 1}")
+        col1, col2, col3, col4 = st.columns([2, 1, 1, 1]) 
+        # Преобразуем таймкод в формат "минуты:секунды"
+        with col1:
+            st.image(st.session_state.frames[time_to_seconds(clip)][1], width=200)
+
+        with col2:
+            st.markdown(f'Эмоциональный окрас {new_df["emotion"][i]}')
+
+        with col3:
+             st.markdown(f'Ключевые объекты: {new_df["important_objects"][i]}')
+
+        with col4:
+            # Создаем кнопку для перехода на этот момент
+             st.markdown(f"Сцена  {i + 1} ({clip})")
+
+    # Фильтрация строк по выбранной категории
+    st.header("Музыка.")
+    music_lines = [line for line in st.session_state.whisper_data["text"] if "МУЗЫКА" in line]
+    if music_lines:
+        st.write("Строки, содержащие музыку:")
+        for line in music_lines:
+            st.write(line)
+    else:
+        st.write("Нет строк, содержащих музыку.")
+
+    # st.session_state.whisper_data["anomaly"] = st.session_state.whisper_data["anomaly"].astype(str)
+    # st.session_state.whisper_data["text_tone"] = st.session_state.whisper_data["text_tone"].astype(str)
+    # st.session_state.whisper_data["text_morph"] = st.session_state.whisper_data["text_morph"].astype(str)
+    st.write(
+        st.session_state.whisper_data[
+            ["start", "text", "anomaly", "text_tone", "text_morph"]
+        ]
+    )
+
 
     os.remove(output_file)
 
@@ -161,9 +208,6 @@ def process_zip_archive(uploaded_file):
             whisper_data["emotionals"] = ""
             whisper_data["objects"] = [[] for _ in range(len(whisper_data))]
             for i in range(len(whisper_data)):
-                print(whisper_data["start"][i])
-                print(whisper_data["end"][i])
-                print(whisper_data["text"][i])
                 if whisper_data["start"][i] == whisper_data["end"][i]:
                     continue
                 with tempfile.NamedTemporaryFile(
@@ -202,5 +246,7 @@ def process_zip_archive(uploaded_file):
 
 
 if __name__ == "__main__":
-
+    st.set_page_config(
+        layout='wide'
+    )
     main()

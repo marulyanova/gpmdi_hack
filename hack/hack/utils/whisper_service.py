@@ -4,7 +4,7 @@ import whisper
 from pydub import AudioSegment
 
 
-model = whisper.load_model("base")
+model = whisper.load_model("medium")
 
 
 # def save_audio(path: str):

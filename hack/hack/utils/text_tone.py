@@ -26,7 +26,7 @@ def get_inappropriate(text: List[str]) -> List[float]:
     response = label_to_words(reveal_inappropriate_lexicon(text))
     result = []
     for i, elem in enumerate(text):
-        result.append([elem, response[i]["label"], response[i]["score"]])
+        result.append([response[i]["label"], response[i]["score"]])
     return result
 
 
